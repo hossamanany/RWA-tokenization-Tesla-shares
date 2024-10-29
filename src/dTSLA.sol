@@ -14,12 +14,18 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
  * @author Hossam Elanany
  */
 contract dTSLA is ConfirmedOwner, FunctionsClient, ERC20 {
-    using FunctionsRequest for FunctionsRequest.Request;
-    using Strings for uint256;
-
+    /////////////////////////
+    //////// Errors /////////
+    /////////////////////////
     error dTSLA__NotEnoughCollateral();
     error dTSLA__DoesntMeetMinimumWithdrawalAmount();
     error dTSLA__TransferFailed();
+
+    ////////////////////////
+    //////// Types /////////
+    ////////////////////////
+    using FunctionsRequest for FunctionsRequest.Request;
+    using Strings for uint256;
 
     enum MintOrRedeem {
         MINT,
@@ -32,6 +38,9 @@ contract dTSLA is ConfirmedOwner, FunctionsClient, ERC20 {
         MintOrRedeem action;
     }
 
+    /////////////////////////
+    //// State Variables ////
+    /////////////////////////
     uint256 constant PRECISION = 1e18;
     address constant SEPOLIA_FUNCTIONS_ROUTER = 0xb83E47C2bC239B3bf370bc41e1459A34b41238D0;
     bytes32 constant DON_ID = hex"66756e2d657468657265756d2d7365706f6c69612d3100000000000000000000";
@@ -39,18 +48,23 @@ contract dTSLA is ConfirmedOwner, FunctionsClient, ERC20 {
     address constant SEPOLIA_USDC_PRICE_FEED = 0xA2F78ab2355fe2f984D808B5CeE7FD0A93D5270E;
     address constant SEPOLIA_USDC = 0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6; // TODO: Replace with the actual USDC address
     uint256 constant ADDITIONAL_FEED_PRECISION = 1e10;
-    string private s_mintSourceCode;
-    string private s_redeemSourceCode;
-    uint256 private s_portfolioBalance;
-    uint64 immutable i_subId;
-    uint32 constant GAS_LIMIT = 300_000;
     uint256 constant COLLATERAL_RATIO = 200; // 200% collateral ratio
     uint256 constant COLLATERAL_PRECISION = 100;
     uint256 constant MINIMUM_WITHDRAWAL_AMOUNT = 100e18; // 100 dTSLA
+    uint32 constant GAS_LIMIT = 300_000;
+
+    string private s_mintSourceCode;
+    string private s_redeemSourceCode;
+    uint256 private s_portfolioBalance;
+
+    uint64 immutable i_subId;
 
     mapping(bytes32 requestId => dTSLARequest request) private s_requestIdToRequest;
     mapping(address user => uint256 pendingWithdrawalAmount) private s_userToWithdrawalAmount;
 
+    /////////////////////////
+    /////// Functions ///////
+    /////////////////////////
     constructor(string memory mintSourceCode, uint64 subId, string memory redeemSourceCode)
         ConfirmedOwner(msg.sender)
         FunctionsClient(SEPOLIA_FUNCTIONS_ROUTER)
@@ -142,6 +156,9 @@ contract dTSLA is ConfirmedOwner, FunctionsClient, ERC20 {
         return ((totalSupply() + addedNumberOfTokens) * getTSLAPrice()) / PRECISION;
     }
 
+    //////////////////////////////////////////////
+    /// Public & External View/Pure Functions ///
+    ////////////////////////////////////////////
     function getUSDCvalueOfUSD(uint256 USDAmount) public view returns (uint256) {
         return (USDAmount * getUSDCPrice()) / PRECISION;
     }
